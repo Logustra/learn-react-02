@@ -1,8 +1,9 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
+import moment from 'moment';
 
-import { addReminder } from "../actions";
+import { addReminder, deleteReminder, clearReminder } from "../actions";
 
 import '../style.css';
 
@@ -11,12 +12,17 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            text: ''
+            text: '',
+            dueDate: ''
         };
     }
 
-    addReminder(text) {
-        this.props.addReminder(text);
+    addReminder(text, dueDate) {
+        this.props.addReminder(text, dueDate);
+    }
+
+    deleteReminder(id) {
+        this.props.deleteReminder(id);
     }
 
     renderReminder() {
@@ -27,8 +33,15 @@ class App extends Component {
                     reminders.map( reminder => {
                         return (
                             <li className="list-group-item" key={reminder.id}>
-                                <div className="list-item">{reminder.text}</div>
-                                <div className="list-item delete-button">&#x2715;</div>
+                                <div className="list-item">
+                                    <div>{reminder.text}</div>
+                                    <div><em>{moment( new Date(reminder.dueDate)).fromNow()}</em></div>
+                                </div>
+                                <div 
+                                    className="list-item delete-button"
+                                    onClick={() => this.deleteReminder(reminder.id)}>
+                                        &#x2715;
+                                </div>
                             </li>
                         )
                     })
@@ -40,7 +53,7 @@ class App extends Component {
     render() {
         return (
             <div className="App">
-                <div className="title">Murojaah Reminder Pro</div>
+                <div className="title">The Reminder</div>
                 <div className="form-inline">
                     <div className="form-group">
                         <input 
@@ -49,10 +62,19 @@ class App extends Component {
                             placeholder="I have to..."
                             onChange={event => this.setState({text: event.target.value})}
                         />
+                        <input 
+                            type="datetime-local" 
+                            className="form-control"
+                            onChange={event => this.setState({dueDate: event.target.value})}/>
                         <button 
                             className="btn btn-success"
-                            onClick={() => this.addReminder(this.state.text)}>
+                            onClick={() => this.addReminder(this.state.text, this.state.dueDate)}>
                                 Add Reminder
+                        </button>
+                        <button 
+                            className="btn btn-danger"
+                            onClick={() => this.props.clearReminder()}>
+                                Clear Reminder
                         </button>
                         {this.renderReminder()}
                     </div>
@@ -69,7 +91,7 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => {
-    return bindActionCreators({ addReminder }, dispatch);
+    return bindActionCreators({ addReminder, deleteReminder, clearReminder }, dispatch);
 }
 
 export default connect( mapStateToProps, mapDispatchToProps)(App);
